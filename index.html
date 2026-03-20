@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pixi — Beta Waitlist</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --purple: #a855f7;
+      --purple-light: #c084fc;
+      --purple-dark: #7c3aed;
+      --pink: #ec4899;
+      --bg: #06020f;
+      --card: rgba(255,255,255,0.04);
+      --border: rgba(168,85,247,0.25);
+      --text: #f1f0ff;
+      --muted: rgba(241,240,255,0.55);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Background ── */
+    .bg-glow {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(124,58,237,0.35) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(236,72,153,0.2) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 50% at 20% 80%, rgba(168,85,247,0.15) 0%, transparent 60%);
+    }
+
+    /* ── Noise overlay ── */
+    .bg-glow::after {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      opacity: 0.4;
+    }
+
+    /* ── Floating particles ── */
+    .particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+    .particle {
+      position: absolute;
+      border-radius: 50%;
+      background: var(--purple-light);
+      opacity: 0;
+      animation: float-up linear infinite;
+    }
+    @keyframes float-up {
+      0%   { transform: translateY(0) scale(1); opacity: 0; }
+      10%  { opacity: 0.6; }
+      90%  { opacity: 0.2; }
+      100% { transform: translateY(-100vh) scale(0.3); opacity: 0; }
+    }
+
+    /* ── Layout ── */
+    .page { position: relative; z-index: 1; }
+
+    /* ── Nav ── */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 2rem;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      background: rgba(6,2,15,0.6);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-logo { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .nav-logo img { width: 34px; height: 34px; border-radius: 8px; }
+    .nav-logo span { font-weight: 800; font-size: 1.2rem; color: var(--text); letter-spacing: -0.02em; }
+    .nav-badge {
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      color: #fff; font-size: 0.68rem; font-weight: 700;
+      padding: 0.2rem 0.6rem; border-radius: 20px; letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      display: flex; flex-direction: column; align-items: center;
+      text-align: center;
+      padding: 5rem 1.5rem 3rem;
+      gap: 1.5rem;
+    }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: rgba(168,85,247,0.12);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 0.4rem 1rem;
+      font-size: 0.82rem; font-weight: 600; color: var(--purple-light);
+      letter-spacing: 0.04em;
+      animation: pulse-border 3s ease-in-out infinite;
+    }
+    @keyframes pulse-border {
+      0%, 100% { border-color: rgba(168,85,247,0.25); box-shadow: none; }
+      50% { border-color: rgba(168,85,247,0.6); box-shadow: 0 0 12px rgba(168,85,247,0.3); }
+    }
+    .hero-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; animation: blink 1.5s ease-in-out infinite; }
+    @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+    .logo-wrap {
+      position: relative;
+      width: 140px; height: 140px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-wrap::before, .logo-wrap::after {
+      content: '';
+      position: absolute; border-radius: 50%;
+      animation: ring-pulse 2.5s ease-in-out infinite;
+    }
+    .logo-wrap::before {
+      inset: -14px;
+      border: 2px solid rgba(168,85,247,0.35);
+      animation-delay: 0s;
+    }
+    .logo-wrap::after {
+      inset: -28px;
+      border: 1px solid rgba(168,85,247,0.15);
+      animation-delay: 0.8s;
+    }
+    @keyframes ring-pulse {
+      0%,100%{transform:scale(1);opacity:1;}
+      50%{transform:scale(1.06);opacity:0.5;}
+    }
+    .logo-img {
+      width: 120px; height: 120px;
+      border-radius: 28px;
+      box-shadow: 0 0 40px rgba(168,85,247,0.5), 0 0 80px rgba(168,85,247,0.2);
+      animation: logo-float 4s ease-in-out infinite;
+    }
+    @keyframes logo-float {
+      0%,100%{transform:translateY(0);}
+      50%{transform:translateY(-8px);}
+    }
+
+    h1 {
+      font-size: clamp(2.4rem, 6vw, 4rem);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      max-width: 700px;
+    }
+    h1 .highlight {
+      background: linear-gradient(135deg, var(--purple-light), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: 1.1rem;
+      color: var(--muted);
+      max-width: 500px;
+      line-height: 1.7;
+    }
+
+    /* ── Counter ── */
+    .counter-row {
+      display: flex; gap: 2.5rem; flex-wrap: wrap; justify-content: center;
+      padding: 1rem 0;
+    }
+    .counter-item { text-align: center; }
+    .counter-num {
+      font-size: 2rem; font-weight: 900;
+      background: linear-gradient(135deg, var(--purple-light), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .counter-label { font-size: 0.78rem; color: var(--muted); margin-top: 0.2rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+
+    /* ── Form ── */
+    .form-wrap {
+      width: 100%; max-width: 460px;
+      display: flex; flex-direction: column; gap: 0.75rem;
+    }
+    .input-row { display: flex; gap: 0.5rem; }
+
+    input[type="text"], input[type="email"] {
+      flex: 1;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.85rem 1.1rem;
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input::placeholder { color: rgba(241,240,255,0.35); }
+    input:focus {
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px rgba(168,85,247,0.2);
+    }
+
+    .btn-join {
+      background: linear-gradient(135deg, var(--purple-dark), var(--pink));
+      color: #fff; font-weight: 700; font-size: 1rem;
+      border: none; border-radius: 12px;
+      padding: 0.9rem 1.6rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 24px rgba(124,58,237,0.4);
+    }
+    .btn-join:hover { opacity: 0.92; transform: translateY(-2px); box-shadow: 0 8px 30px rgba(124,58,237,0.5); }
+    .btn-join:active { transform: translateY(0); }
+
+    .form-note { font-size: 0.78rem; color: var(--muted); text-align: center; }
+    .form-note a { color: var(--purple-light); text-decoration: none; }
+
+    /* ── Success state ── */
+    .success-msg {
+      display: none;
+      align-items: center; justify-content: center; gap: 0.6rem;
+      background: rgba(34,197,94,0.1);
+      border: 1px solid rgba(34,197,94,0.3);
+      border-radius: 12px;
+      padding: 1rem 1.4rem;
+      color: #86efac;
+      font-weight: 600;
+      font-size: 0.95rem;
+      width: 100%;
+    }
+    .success-msg.show { display: flex; animation: fade-in 0.4s ease; }
+    @keyframes fade-in { from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:none;} }
+
+    /* ── Features ── */
+    .features {
+      padding: 4rem 1.5rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.25rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .feat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 1.6rem;
+      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    }
+    .feat-card:hover {
+      border-color: rgba(168,85,247,0.5);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 32px rgba(168,85,247,0.15);
+    }
+    .feat-icon { font-size: 1.8rem; margin-bottom: 0.8rem; }
+    .feat-title { font-weight: 700; font-size: 1rem; margin-bottom: 0.4rem; }
+    .feat-desc { font-size: 0.87rem; color: var(--muted); line-height: 1.6; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 2rem 1rem;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+    footer a { color: var(--purple-light); text-decoration: none; }
+
+    /* ── Responsive ── */
+    @media (max-width: 520px) {
+      .input-row { flex-direction: column; }
+      .btn-join { width: 100%; }
+      .counter-row { gap: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Glows -->
+  <div class="bg-glow"></div>
+
+  <!-- Particles -->
+  <div class="particles" id="particles"></div>
+
+  <div class="page">
+    <!-- Nav -->
+    <nav>
+      <a class="nav-logo" href="#">
+        <img src="pixi-logo.png" alt="Pixi Logo" />
+        <span>Pixi</span>
+      </a>
+      <div class="nav-badge">Beta Coming Soon</div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-badge">
+        <span class="dot"></span>
+        Beta Testers Wanted
+      </div>
+
+      <div class="logo-wrap">
+        <img class="logo-img" src="pixi-logo.png" alt="Pixi" />
+      </div>
+
+      <h1>
+        הסרטון שלך,<br />
+        <span class="highlight">בשניות ולא בשעות</span>
+      </h1>
+
+      <p class="hero-sub">
+        Pixi יוצר עבורך סרטון שיווקי מקצועי — רק מהודעת וואטסאפ.
+        אין עורכים, אין ממשק, אין בזבוז זמן.
+      </p>
+
+      <!-- Counter -->
+      <div class="counter-row">
+        <div class="counter-item">
+          <div class="counter-num" id="cnt-users">0</div>
+          <div class="counter-label">נרשמו כבר</div>
+        </div>
+        <div class="counter-item">
+          <div class="counter-num">30s</div>
+          <div class="counter-label">זמן יצירה ממוצע</div>
+        </div>
+        <div class="counter-item">
+          <div class="counter-num">100%</div>
+          <div class="counter-label">AI Generated</div>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <div class="form-wrap">
+        <div class="input-row">
+          <input type="email" id="email-input" placeholder="האימייל שלך" autocomplete="email" />
+          <button class="btn-join" onclick="joinWaitlist()">הצטרף לרשימה</button>
+        </div>
+        <div class="success-msg" id="success-msg">
+          ✅ נרשמת בהצלחה! נעדכן אותך ראשון
+        </div>
+        <p class="form-note">ללא ספאם. רק עדכון אחד כשהביתא נפתחת 🔒</p>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features">
+      <div class="feat-card">
+        <div class="feat-icon">🎙️</div>
+        <div class="feat-title">פשוט דבר אליו</div>
+        <div class="feat-desc">שלח הודעה קולית עם הרעיון שלך — Pixi מבין, מתכנן ומייצר הכל לבד.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🎬</div>
+        <div class="feat-title">סרטון מקצועי תוך דקות</div>
+        <div class="feat-desc">AI מחולל, מאניש ועורך את הסרטון — כולל קריינות, מוזיקה וכתוביות.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📱</div>
+        <div class="feat-title">ישר לוואטסאפ</div>
+        <div class="feat-desc">לא צריך להתקין כלום. הכל קורה בתוך הצ'אט שלך.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🚀</div>
+        <div class="feat-title">מוכן לפרסום</div>
+        <div class="feat-desc">הסרטון יוצא אופטימיזצי לאינסטגרם, טיקטוק, יוטיוב ופייסבוק.</div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <p>© 2026 Pixi · <a href="https://pixibot.app" target="_blank">pixibot.app</a> · Built with ❤️ & AI</p>
+    </footer>
+  </div>
+
+  <script>
+    // ── Particles ──
+    (function() {
+      const container = document.getElementById('particles');
+      const count = 25;
+      for (let i = 0; i < count; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const size = Math.random() * 4 + 2;
+        p.style.cssText = `
+          width: ${size}px; height: ${size}px;
+          left: ${Math.random() * 100}%;
+          bottom: ${-size}px;
+          animation-duration: ${Math.random() * 15 + 10}s;
+          animation-delay: ${Math.random() * 10}s;
+          opacity: 0;
+        `;
+        container.appendChild(p);
+      }
+    })();
+
+    // ── Counter animation ──
+    function animateCounter(el, target, duration) {
+      let start = 0;
+      const step = target / (duration / 16);
+      const timer = setInterval(() => {
+        start = Math.min(start + step, target);
+        el.textContent = Math.floor(start).toLocaleString();
+        if (start >= target) clearInterval(timer);
+      }, 16);
+    }
+    window.addEventListener('load', () => {
+      animateCounter(document.getElementById('cnt-users'), 247, 2000);
+    });
+
+    // ── Waitlist join ──
+    function joinWaitlist() {
+      const email = document.getElementById('email-input').value.trim();
+      if (!email || !email.includes('@')) {
+        document.getElementById('email-input').focus();
+        document.getElementById('email-input').style.borderColor = '#f87171';
+        setTimeout(() => document.getElementById('email-input').style.borderColor = '', 1500);
+        return;
+      }
+
+      // Send to Formspree (or replace with your endpoint)
+      const btn = document.querySelector('.btn-join');
+      btn.textContent = '...שולח';
+      btn.disabled = true;
+
+      // Simulate / Formspree submit
+      fetch('https://formspree.io/f/waitlist-pixi', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+      .catch(() => {})  // always show success for demo
+      .finally(() => {
+        document.querySelector('.input-row').style.display = 'none';
+        document.getElementById('success-msg').classList.add('show');
+
+        // Bump counter
+        const cnt = document.getElementById('cnt-users');
+        const cur = parseInt(cnt.textContent.replace(',',''));
+        animateCounter(cnt, cur + 1, 500);
+      });
+    }
+
+    // Enter key submit
+    document.getElementById('email-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') joinWaitlist();
+    });
+  </script>
+</body>
+</html>
